@@ -1,15 +1,15 @@
-package me.apottere.bookwarp;
+package me.apottere.warpbook;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
  * @author Andrew Potter
  */
-public class BookWarp extends JavaPlugin {
+public class WarpBook extends JavaPlugin {
 
     private BookListener listener;
 
-    public BookWarp() {
+    public WarpBook() {
         listener = new BookListener();
     }
 

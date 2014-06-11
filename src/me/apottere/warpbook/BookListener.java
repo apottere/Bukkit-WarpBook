@@ -1,4 +1,4 @@
-package me.apottere.bookwarp;
+package me.apottere.warpbook;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
