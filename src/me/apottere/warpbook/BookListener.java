@@ -1,6 +1,7 @@
 package me.apottere.warpbook;
 
 import org.bukkit.*;
+import org.bukkit.command.Command;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -12,7 +13,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Arrays;
 import java.util.List;
@@ -26,6 +26,37 @@ public class BookListener implements Listener {
 
     public BookListener(WarpBook plugin) {
         this.plugin = plugin;
+    }
+
+    @EventHandler
+    public boolean handleCommand(Player sender, Command cmd, String label, String[] args) {
+        if(cmd.getName().equals("wbname")) {
+            if(args.length != 1) {
+                sender.sendRawMessage(cmd.getName() + ": Invalid number of arguments, expected 1.");
+                return false;
+            }
+
+            ItemStack item = sender.getItemInHand();
+            if(item.getType() != Material.WRITTEN_BOOK || !isBookWarping(item)) {
+                sender.sendRawMessage(cmd.getName() + ": Select a valid warping book on your hotbar.");
+                return false;
+            }
+
+            BookMeta meta = (BookMeta) item.getItemMeta();
+            int page = getSelectedPage(meta);
+
+            if(meta.getPage(page).equals("")) {
+                sender.sendRawMessage(cmd.getName() + ": You must bind a location to page " + page + " before naming it.");
+                return false;
+            }
+
+            setPageName(item, page, args[0]);
+            setSelectedPage(item, page);
+            sender.sendRawMessage("Set name of page " + page + " to \"" + args[0] + "\".");
+
+            return true;
+        }
+        return false;
     }
 
     @EventHandler
@@ -56,7 +87,16 @@ public class BookListener implements Listener {
 
             setSelectedPage(book, page);
 
-            player.sendRawMessage("Scrolled to page " + page + ": " + meta.getPage(page));
+            String msg = "Scrolled to page " + page + ": ";
+            String name = getPageName(meta, page);
+
+            if(name != null) {
+                msg += name;
+            } else {
+                msg += meta.getPage(page);
+            }
+
+            player.sendRawMessage(msg);
         }
     }
 
@@ -68,11 +108,42 @@ public class BookListener implements Listener {
         }
     }
 
+    private void setPageName(ItemStack book, int page, String name) {
+        BookMeta meta = (BookMeta) book.getItemMeta();
+
+        String coords = meta.getPage(page);
+        String[] parts = coords.split(":", 6);
+
+        meta.setPage(page, parts[0] + ':' + parts[1] + ':' + parts[2] + ':' + parts[3] + ':' + parts[4] + ':' + name);
+        book.setItemMeta(meta);
+    }
+
+    private String getPageName(BookMeta meta, int page) {
+        String coords = meta.getPage(page);
+
+        if(coords.replaceAll("[^:]", "").length() < 5) {
+            return null;
+        } else {
+            return coords.split(":", 6)[5];
+        }
+    }
+
+    private void refreshSelectedPage(ItemStack book) {
+        setSelectedPage(book, getSelectedPage((BookMeta) book.getItemMeta()));
+    }
+
     private void setSelectedPage(ItemStack book, int page) {
         BookMeta meta = (BookMeta) book.getItemMeta();
 
+        String title = "Page " + page;
+        String pageName = getPageName(meta, page);
+
+        if(pageName != null) {
+            title += " (" + pageName + ")";
+        }
+
         List<String> lore = meta.getLore();
-        lore.set(1, "Selected: " + page);
+        lore.set(1, title);
         meta.setLore(lore);
         book.setItemMeta(meta);
     }
@@ -149,6 +220,9 @@ public class BookListener implements Listener {
                 int page = getSelectedPage(meta);
                 meta.setPage(page, coords);
                 book.setItemMeta(meta);
+
+                refreshSelectedPage(book);
+
                 player.sendRawMessage("Bound page " + page + ": " + coords);
 
             } else {
@@ -171,7 +245,7 @@ public class BookListener implements Listener {
     }
 
     private String serializeLocation(Location location) {
-        return location.getWorld().getName() + ':' + (Math.floor(location.getX()) + 0.5) + ':' + location.getY() + ':' + (Math.floor(location.getZ()) + 0.5) + ':' + location.getYaw();
+        return location.getWorld().getName() + ':' + (Math.floor(location.getX()) + 0.5) + ':' + location.getY() + ':' + (Math.floor(location.getZ()) + 0.5) + ':' + Math.floor(location.getYaw());
     }
 
     private Location deserializeLocation(String coords) {

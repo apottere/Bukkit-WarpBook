@@ -1,6 +1,9 @@
 package me.apottere.warpbook;
 
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
@@ -28,6 +31,11 @@ public class WarpBook extends JavaPlugin {
         config.set("Extra page level cost", extraPageLevelCost);
 
         this.saveConfig();
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+        return sender instanceof Player && listener.handleCommand((Player) sender, cmd, label, args);
     }
 
     public void onEnable() {
