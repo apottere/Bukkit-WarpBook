@@ -238,6 +238,7 @@ public class BookListener implements Listener {
                 }
                 player.teleport(location);
                 for (int i = 0; i < 8; i++) {
+                    player.playSound(player.getLocation(), Sound.PORTAL_TRAVEL, 0.003f, 10000f);
                     player.getWorld().playEffect(player.getEyeLocation(), Effect.SMOKE, i, 2);
                 }
             }
