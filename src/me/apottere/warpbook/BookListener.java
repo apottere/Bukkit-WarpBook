@@ -13,6 +13,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
+import org.bukkit.util.Vector;
 
 import java.util.Arrays;
 import java.util.List;
@@ -236,7 +237,10 @@ public class BookListener implements Listener {
                 for (int i = 0; i < 8; i++) {
                     player.getWorld().playEffect(player.getEyeLocation(), Effect.SMOKE, i, 2);
                 }
+                Vector momentum = player.getVelocity();
+                player.setFallDistance(0);
                 player.teleport(location);
+                player.setVelocity(momentum);
                 for (int i = 0; i < 8; i++) {
                     player.playSound(player.getLocation(), Sound.PORTAL_TRAVEL, 0.003f, 10000f);
                     player.getWorld().playEffect(player.getEyeLocation(), Effect.SMOKE, i, 2);
